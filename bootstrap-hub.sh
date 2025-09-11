@@ -7,7 +7,7 @@ echo "[*] Generating configs..."
 ./setup-configs.sh
 
 echo "[*] Starting monitoring stack..."
-docker-compose -f docker-compose.hub.yml up -d
+docker compose -f docker-compose.hub.yml up -d
 
 echo "[*] Installing host-level monitors (auditd, AIDE, inotify)..."
 ./deploy-monitor.sh

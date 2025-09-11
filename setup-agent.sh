@@ -71,3 +71,45 @@ EOF
 
 echo "[*] Agent configuration created!"
 echo "Run: docker-compose -f docker-compose.agent.yml up -d"
+
+echo "[*] Creating Promtail configuration..."
+cat > promtail-agent.yml <<EOF
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://${SERVER1_IP}:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: varlogs
+          host: $(hostname -f)
+          __path__: /var/log/{auth.log,syslog}
+
+  - job_name: docker-containers
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: containers
+          host: $(hostname -f)
+          __path__: /var/lib/docker/containers/*/*.log
+    pipeline_stages:
+      - docker: {}
+
+  - job_name: security
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: security
+          host: $(hostname -f)
+          __path__: /var/log/inotify-changes.log
+EOF
+
+echo "[*] Promtail configuration created at promtail-agent.yml"

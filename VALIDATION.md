@@ -6,37 +6,33 @@ Copy/paste commands to verify the stack quickly.
 
 ```bash
 # Compose services
-docker-compose -f docker-compose.hub.yml ps
+docker compose -f docker-compose.hub.yml ps
 
 # Core HTTP checks
-curl -s http://localhost:5601/api/status | jq '.status.overall.state'     # Kibana
-curl -s http://localhost:9200/_cluster/health | jq '.status'              # Elasticsearch
 curl -s http://localhost:9090/api/v1/status/runtimeinfo | jq '.status'    # Prometheus
+curl -s "http://localhost:3100/ready"                                     # Loki
 
 # Prometheus targets
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets | length'
 
-# Logstash logs
-docker logs --tail=100 logstash
-
-# Indices present
-curl -s http://localhost:9200/_cat/indices/logs-* | tail -n 10
+# Loki labels
+curl -s "http://localhost:3100/loki/api/v1/label/job/values"
 ```
 
 ## Agent (Server 2)
 
 ```bash
 # Compose services
-docker-compose -f docker-compose.agent.yml ps
+docker compose -f docker-compose.agent.yml ps
 
 # Node exporter
 curl -s http://localhost:9100/metrics | head -n 5
 
-# Filebeat logs
-docker logs --tail=100 filebeat
+# Promtail logs
+docker logs --tail=100 promtail
 
-# Connectivity to hub
-nc -z 185.252.234.29 5044 || bash -c 'cat < /dev/null > /dev/tcp/185.252.234.29/5044' && echo OK || echo FAIL
+# Connectivity to hub (Loki)
+curl -s "http://185.252.234.29:3100/ready"
 ```
 
 ## Host monitors
@@ -77,10 +73,10 @@ cat prometheus/prometheus.yml | sed -n '1,80p'
 
 ```bash
 # Restart hub services
-docker-compose -f docker-compose.hub.yml up -d --pull always
+docker compose -f docker-compose.hub.yml up -d --pull always
 
 # Restart agent services
-docker-compose -f docker-compose.agent.yml up -d --pull always
+docker compose -f docker-compose.agent.yml up -d --pull always
 
 # Remove old docker images (optional)
 docker image prune -af

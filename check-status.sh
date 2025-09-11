@@ -9,7 +9,7 @@ if [[ "$SERVER_TYPE" == "hub" ]]; then
     echo ""
     
     echo "[*] Docker Services Status:"
-    docker-compose -f docker-compose.hub.yml ps
+    docker compose -f docker-compose.hub.yml ps
     echo ""
     
     echo "[*] Service Health Checks:"
