@@ -52,7 +52,7 @@ groups:
     labels:
       severity: warning
     annotations:
-      summary: "High CPU usage on {{ \$labels.instance }}"
+      summary: "High CPU usage on {{ $labels.instance }}"
 
   - alert: HighMemoryUsage
     expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
@@ -60,7 +60,7 @@ groups:
     labels:
       severity: warning
     annotations:
-      summary: "High memory usage on {{ \$labels.instance }}"
+      summary: "High memory usage on {{ $labels.instance }}"
 
   - alert: DiskSpaceLow
     expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 20
@@ -68,7 +68,7 @@ groups:
     labels:
       severity: critical
     annotations:
-      summary: "Low disk space on {{ \$labels.instance }}"
+      summary: "Low disk space on {{ $labels.instance }}"
 EOF
 
 echo "[*] Creating Alertmanager configuration..."
