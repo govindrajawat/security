@@ -50,7 +50,7 @@ elif [[ "$SERVER_TYPE" == "agent" ]]; then
     echo ""
     
     echo "[*] Docker Services Status:"
-    docker-compose -f docker-compose.agent.yml ps
+    docker compose -f docker-compose.agent.yml ps
     echo ""
     
     echo "[*] Service Health Checks:"
@@ -61,16 +61,16 @@ elif [[ "$SERVER_TYPE" == "agent" ]]; then
     fi
     echo ""
     
-    echo "[*] Connectivity to Hub:"
-    if nc -z 185.252.234.29 5044 >/dev/null 2>&1 || bash -c 'cat < /dev/null > /dev/tcp/185.252.234.29/5044' >/dev/null 2>&1; then
-        echo "✓ Logstash (185.252.234.29:5044) - OK"
+    echo "[*] Connectivity to Hub (Loki):"
+    if curl -s http://185.252.234.29:3100/ready >/dev/null 2>&1; then
+        echo "✓ Loki (185.252.234.29:3100) - OK"
     else
-        echo "✗ Logstash (185.252.234.29:5044) - FAILED"
+        echo "✗ Loki (185.252.234.29:3100) - FAILED"
     fi
     echo ""
     
     echo "[*] System Resources:"
-    echo "Memory: $(free -h | awk 'NR==2{printf "%.1fGB/%.1fGB (%.0f%%)\n", $3/1024, $2/1024, $3*100/$2}')"
+    echo "Memory: $(free -m | awk 'NR==2{printf "%dMB/%dMB (%d%%)\n", $3, $2, ($3*100)/$2}')"
     echo "Disk: $(df -h / | awk 'NR==2{printf "%s/%s (%s)\n", $3, $2, $5}')"
     echo ""
     

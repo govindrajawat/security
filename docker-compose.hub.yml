@@ -82,8 +82,11 @@ services:
       - NET_ADMIN
       - NET_RAW
     volumes:
-      - ./fail2ban:/etc/fail2ban
+      - ./fail2ban:/data
       - /var/log:/var/log:ro
+    environment:
+      - F2B_LOG_TARGET=STDOUT
+      - TZ=UTC
     restart: unless-stopped
 
   # Falco for runtime security

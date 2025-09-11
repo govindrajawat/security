@@ -70,10 +70,11 @@ maxretry = 3
 EOF
 
 echo "[*] Agent configuration created!"
-echo "Run: docker-compose -f docker-compose.agent.yml up -d"
+echo "Run: docker compose -f docker-compose.agent.yml up -d"
 
 echo "[*] Creating Promtail configuration..."
-cat > promtail-agent.yml <<EOF
+mkdir -p promtail
+cat > promtail/promtail-agent.yml <<EOF
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
@@ -112,4 +113,4 @@ scrape_configs:
           __path__: /var/log/inotify-changes.log
 EOF
 
-echo "[*] Promtail configuration created at promtail-agent.yml"
+echo "[*] Promtail configuration created at promtail/promtail-agent.yml"

@@ -11,7 +11,7 @@ echo "[*] Generating agent configs (Logstash: $SERVER1_IP:5044)..."
 ./setup-agent.sh
 
 echo "[*] Starting agent stack..."
-docker-compose -f docker-compose.agent.yml up -d
+docker compose -f docker-compose.agent.yml up -d
 
 echo "[*] Status check:"
 ./check-status.sh agent
