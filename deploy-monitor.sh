@@ -30,10 +30,11 @@ sudo tee /usr/local/bin/inotify-watch.sh > /dev/null <<'EOF'
 #!/usr/bin/env bash
 # Inotify Watcher (security-critical paths only)
 WATCH_DIRS="/etc /bin /sbin /usr/bin /usr/sbin /lib /lib64 /usr/lib /boot /root /etc/docker"
-LOGFILE="/var/log/inotify-changes.log"
+LOGFILE="/var/lib/inotify/changes.log"
 
 inotifywait -m -r \
   -e modify,create,delete,attrib $WATCH_DIRS \
+  --exclude 'changes\\.log$' \
   --format '%T %w %e %f' --timefmt '%Y-%m-%d %H:%M:%S' >> $LOGFILE
 EOF
 
@@ -52,6 +53,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
+sudo mkdir -p /var/lib/inotify
 sudo systemctl daemon-reload
 sudo systemctl enable --now inotify-watch.service
 
@@ -101,7 +103,6 @@ sudo aide --config=/etc/aide/aide.conf --init
 sudo mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
 
 echo "[*] Setup complete!"
-echo " - Monitoring stack: docker-compose.monitoring.yml (use: docker-compose -f docker-compose.monitoring.yml ps)"
 echo " - auditd logging to /var/log/audit/audit.log"
 echo " - AIDE baseline at /var/lib/aide/aide.db"
-echo " - Inotify changes logged in /var/log/inotify-changes.log"
+echo " - Inotify changes logged in /var/lib/inotify/changes.log"

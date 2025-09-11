@@ -31,9 +31,14 @@ scrape_configs:
 
   - job_name: 'node-exporters'
     static_configs:
-      - targets: 
+      - targets:
         - '185.252.234.29:9100'
+        labels:
+          instance: 'server1'
+      - targets:
         - '84.46.255.10:9100'
+        labels:
+          instance: 'server2'
     metric_relabel_configs:
       - source_labels: [__name__]
         regex: 'go_.+|process_.+'

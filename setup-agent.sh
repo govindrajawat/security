@@ -110,7 +110,13 @@ scrape_configs:
         labels:
           job: security
           host: $(hostname -f)
-          __path__: /var/log/inotify-changes.log
+          __path__: /var/lib/inotify/changes.log
+    pipeline_stages:
+      - match:
+          selector: '{job="security"}'
+          stages:
+            - drop:
+                expression: ' /var/log/ MODIFY inotify-changes.log'
 EOF
 
 echo "[*] Promtail configuration created at promtail/promtail-agent.yml"
