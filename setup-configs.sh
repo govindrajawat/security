@@ -30,6 +30,10 @@ scrape_configs:
       - targets: 
         - '185.252.234.29:9100'
         - '84.46.255.10:9100'
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'go_.+|process_.+'
+        action: drop
 EOF
 
 echo "[*] Creating Prometheus alert rules..."
@@ -65,8 +69,7 @@ EOF
 echo "[*] Creating Alertmanager configuration..."
 cat > alertmanager/alertmanager.yml <<'EOF'
 global:
-  smtp_smarthost: 'localhost:587'
-  smtp_from: 'alerts@yourcompany.com'
+  resolve_timeout: 5m
 
 route:
   group_by: ['alertname']
@@ -78,7 +81,7 @@ route:
 receivers:
 - name: 'web.hook'
   webhook_configs:
-  - url: 'http://localhost:5001/'
+  - url: 'http://prometheus:9090/-/reload'
 EOF
 
 echo "[*] Creating Logstash configuration..."
@@ -112,7 +115,9 @@ output {
   elasticsearch {
     hosts => ["elasticsearch:9200"]
     index => "logs-%{+YYYY.MM.dd}"
+    ilm_enabled => false
   }
+  stdout { codec => json }
 }
 EOF
 
@@ -155,7 +160,7 @@ filebeat.inputs:
   fields_under_root: true
 
 output.logstash:
-  hosts: ["185.252.234.29:5044"]
+  hosts: ["logstash:5044"]
 
 processors:
 - add_host_metadata:

@@ -9,11 +9,11 @@ if [[ "$SERVER_TYPE" == "hub" ]]; then
     echo ""
     
     echo "[*] Docker Services Status:"
-    docker-compose -f docker-compose.monitoring.yml ps
+    docker-compose -f docker-compose.hub.yml ps
     echo ""
     
     echo "[*] Service Health Checks:"
-    services=("elasticsearch:9200" "kibana:5601" "prometheus:9090" "grafana:3000" "vault:8200")
+    services=("elasticsearch:9200" "kibana:5601" "prometheus:9090" "grafana:3000")
     
     for service in "${services[@]}"; do
         name=${service%:*}

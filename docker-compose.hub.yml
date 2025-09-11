@@ -10,6 +10,7 @@ services:
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
       - bootstrap.memory_lock=true
+    mem_limit: 1g
     ulimits:
       memlock:
         soft: -1
@@ -35,6 +36,7 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
+    mem_limit: 512m
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.10.2
@@ -46,6 +48,7 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
+    mem_limit: 256m
 
   # Node Exporter for Server 1 metrics
   node-exporter:
@@ -81,6 +84,7 @@ services:
       - ./prometheus:/etc/prometheus
       - prometheus_data:/prometheus
     restart: unless-stopped
+    mem_limit: 512m
 
   alertmanager:
     image: prom/alertmanager:latest
@@ -90,6 +94,7 @@ services:
     volumes:
       - ./alertmanager:/etc/alertmanager
     restart: unless-stopped
+    mem_limit: 128m
 
   # Grafana for unified dashboard
   grafana:
@@ -102,9 +107,11 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
+    mem_limit: 256m
 
   # Fail2Ban (host network mode for iptables access)
   fail2ban:
+    profiles: ["ips"]
     image: crazymax/fail2ban:latest
     container_name: fail2ban
     network_mode: host
@@ -118,6 +125,7 @@ services:
 
   # Falco for runtime security
   falco:
+    profiles: ["runtime"]
     image: falcosecurity/falco-no-driver:latest
     container_name: falco
     privileged: true
@@ -133,6 +141,7 @@ services:
 
   # Trivy for vulnerability scanning
   trivy:
+    profiles: ["runtime"]
     image: aquasec/trivy:latest
     container_name: trivy
     volumes:
@@ -142,6 +151,7 @@ services:
 
   # Vault for secrets management
   vault:
+    profiles: ["secrets"]
     image: vault:latest
     container_name: vault
     cap_add:

@@ -3,7 +3,7 @@
 
 set -e
 
-echo "[*] Installing required packages..."
+echo "[*] Installing required host packages (auditd, AIDE, inotify)..."
 sudo apt-get update -y
 sudo apt-get install -y auditd audispd-plugins aide inotify-tools
 
@@ -101,6 +101,7 @@ sudo aide --config=/etc/aide/aide.conf --init
 sudo mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
 
 echo "[*] Setup complete!"
+echo " - Monitoring stack: docker-compose.monitoring.yml (use: docker-compose -f docker-compose.monitoring.yml ps)"
 echo " - auditd logging to /var/log/audit/audit.log"
 echo " - AIDE baseline at /var/lib/aide/aide.db"
 echo " - Inotify changes logged in /var/log/inotify-changes.log"

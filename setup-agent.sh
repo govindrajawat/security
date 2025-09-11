@@ -2,10 +2,11 @@
 # Agent Setup for Servers 2-7
 set -e
 
-SERVER1_IP="185.252.234.29"  # Hub (Server 1) IP
+SERVER1_IP="${SERVER1_IP:-185.252.234.29}"  # Hub (Server 1) IP (can override via env)
 
 echo "[*] Creating agent configuration..."
 mkdir -p fail2ban-agent/jail.d
+mkdir -p tmp
 
 # Filebeat config for agent servers
 cat > filebeat-agent.yml <<EOF
@@ -16,7 +17,7 @@ filebeat.inputs:
     - /var/log/audit/audit.log
   fields:
     log_type: audit
-    server: "agent-84.46.255.10"
+    server: "$(hostname -f)"
   fields_under_root: true
 
 - type: log
@@ -25,7 +26,7 @@ filebeat.inputs:
     - /var/log/inotify-changes.log
   fields:
     log_type: inotify
-    server: "agent-84.46.255.10"
+    server: "$(hostname -f)"
   fields_under_root: true
 
 - type: log
@@ -35,14 +36,14 @@ filebeat.inputs:
     - /var/log/auth.log
   fields:
     log_type: system
-    server: "agent-84.46.255.10"
+    server: "$(hostname -f)"
   fields_under_root: true
 
 - type: container
   paths:
     - '/var/lib/docker/containers/*/*.log'
   fields:
-    server: "agent-84.46.255.10"
+    server: "$(hostname -f)"
   fields_under_root: true
 
 output.logstash:
