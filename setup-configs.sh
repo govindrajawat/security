@@ -5,8 +5,7 @@ set -e
 echo "[*] Creating configuration directories..."
 mkdir -p prometheus
 mkdir -p alertmanager
-mkdir -p logstash/config
-mkdir -p filebeat
+mkdir -p loki
 mkdir -p fail2ban/jail.d
 mkdir -p falco
 
@@ -89,88 +88,80 @@ receivers:
   - url: 'http://prometheus:9090/-/reload'
 EOF
 
-echo "[*] Creating Logstash configuration..."
-cat > logstash/config/logstash.conf <<'EOF'
-input {
-  beats {
-    port => 5044
-  }
-  syslog {
-    port => 5000
-  }
-}
-
-filter {
-  if [fields][log_type] == "audit" {
-    grok {
-      match => { "message" => "%{GREEDYDATA:audit_message}" }
-    }
-  }
-  
-  if [fields][log_type] == "inotify" {
-    grok {
-      match => { 
-        "message" => "%{TIMESTAMP_ISO8601:timestamp} %{DATA:path} %{DATA:event} %{GREEDYDATA:filename}" 
-      }
-    }
-  }
-}
-
-output {
-  elasticsearch {
-    hosts => ["elasticsearch:9200"]
-    index => "logs-%{+YYYY.MM.dd}"
-    ilm_enabled => false
-  }
-  stdout { codec => json }
-}
+echo "[*] Creating Loki configuration..."
+cat > loki/config.yml <<'EOF'
+auth_enabled: false
+server:
+  http_listen_port: 3100
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+schema_config:
+  configs:
+  - from: 2020-10-24
+    store: boltdb-shipper
+    object_store: filesystem
+    schema: v11
+    index:
+      prefix: index_
+      period: 24h
+ruler:
+  alertmanager_url: http://alertmanager:9093
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
 EOF
 
-echo "[*] Creating Filebeat configuration..."
-cat > filebeat/filebeat.yml <<'EOF'
-filebeat.inputs:
-- type: log
-  enabled: true
-  paths:
-    - /var/log/audit/audit.log
-  fields:
-    log_type: audit
-    server: "hub-185.252.234.29"
-  fields_under_root: true
+echo "[*] Creating Promtail agent configuration template (for agents)..."
+cat > promtail-agent.yml <<'EOF'
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
 
-- type: log
-  enabled: true
-  paths:
-    - /var/log/inotify-changes.log
-  fields:
-    log_type: inotify
-    server: "hub-185.252.234.29"
-  fields_under_root: true
+positions:
+  filename: /tmp/positions.yaml
 
-- type: log
-  enabled: true
-  paths:
-    - /var/log/syslog
-    - /var/log/auth.log
-  fields:
-    log_type: system
-    server: "hub-185.252.234.29"
-  fields_under_root: true
+clients:
+  - url: http://185.252.234.29:3100/loki/api/v1/push
 
-- type: container
-  paths:
-    - '/var/lib/docker/containers/*/*.log'
-  fields:
-    server: "hub-185.252.234.29"
-  fields_under_root: true
+scrape_configs:
+  - job_name: system-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: varlogs
+          host: ${HOSTNAME}
+          __path__: /var/log/{auth.log,syslog}
 
-output.logstash:
-  hosts: ["logstash:5044"]
+  - job_name: docker-containers
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: containers
+          host: ${HOSTNAME}
+          __path__: /var/lib/docker/containers/*/*.log
+    pipeline_stages:
+      - docker: {}
 
-processors:
-- add_host_metadata:
-    when.not.contains.tags: forwarded
-- add_docker_metadata: ~
+  - job_name: security
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: security
+          host: ${HOSTNAME}
+          __path__: /var/log/inotify-changes.log
 EOF
 
 echo "[*] Creating Fail2Ban jail configuration..."

@@ -18,17 +18,17 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
 
-  # Filebeat for log forwarding to Server 1
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.10.2
-    container_name: filebeat
-    user: root
-    restart: unless-stopped
+  # Promtail for log forwarding to Loki on Server 1
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    command: ["-config.file=/etc/promtail/config.yml"]
     volumes:
-      - ./filebeat-agent.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./promtail-agent.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/log:/var/log:ro
+    restart: unless-stopped
 
   # Lightweight Fail2Ban (optional, can run on Server 1 only)
   fail2ban:

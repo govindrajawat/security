@@ -1,54 +1,17 @@
 version: '3.8'
 
 services:
-  # ELK Stack (Lightweight version with single Elasticsearch)
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-      - bootstrap.memory_lock=true
-    mem_limit: 1g
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+  # Loki for log aggregation (replaces ELK)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    command: ["-config.file=/etc/loki/config.yml"]
+    ports:
+      - "3100:3100"
     volumes:
-      - es_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
+      - ./loki/config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
     restart: unless-stopped
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.10.2
-    container_name: logstash
-    volumes:
-      - ./logstash/config:/usr/share/logstash/pipeline
-      - /var/log:/host/var/log:ro
-    ports:
-      - "5044:5044"
-      - "5000:5000/tcp"
-      - "5000:5000/udp"
-    environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
-    depends_on:
-      - elasticsearch
-    restart: unless-stopped
-    mem_limit: 512m
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.10.2
-    container_name: kibana
-    ports:
-      - "5601:5601"
-    environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    restart: unless-stopped
-    mem_limit: 256m
 
   # Node Exporter for Server 1 metrics
   node-exporter:
@@ -165,22 +128,10 @@ services:
       - vault_data:/vault/data
     restart: unless-stopped
 
-  # Filebeat for log collection
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.10.2
-    container_name: filebeat
-    user: root
-    volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/log:/var/log:ro
-    depends_on:
-      - logstash
-    restart: unless-stopped
+  # (Optional) add promtail on hub later if needed
 
 volumes:
-  es_data:
+  loki_data:
   prometheus_data:
   grafana_data:
   vault_data:

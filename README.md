@@ -3,7 +3,7 @@
 This repo bootstraps a lightweight monitoring and security stack:
 
 - Host: auditd + inotify + AIDE
-- Logs: Filebeat → Logstash → Elasticsearch → Kibana (ELK)
+- Logs: Promtail → Loki → Grafana (Explore)
 - Metrics: Node Exporter → Prometheus → Grafana + Alertmanager
 - IPS: Fail2Ban (optional profile)
 - Runtime: Falco (optional) and Trivy (on-demand)
@@ -14,16 +14,15 @@ Minimal resource tuning is applied for low-spec servers.
 ## Topology
 
 - Server 1 (hub: 185.252.234.29)
-  - Runs ELK, Prometheus, Grafana, Alertmanager, Filebeat, optional Fail2Ban/Falco/Trivy/Vault
+  - Runs Loki, Prometheus, Grafana, Alertmanager, optional Fail2Ban/Falco/Trivy/Vault
 - Servers 2-7 (agents: e.g., 84.46.255.10)
-  - Run Filebeat (forward logs to hub), Node Exporter; host runs auditd, inotify, AIDE
+  - Run Promtail (forward logs to hub), Node Exporter; host runs auditd, inotify, AIDE
 
 ## Prerequisites
 
 - Docker and Docker Compose on all servers
-- Outbound from agents to hub: 185.252.234.29:5044 (Logstash)
-- Open on hub (inbound): 5044/tcp, 5601/tcp, 9090/tcp, 9093/tcp, 3000/tcp
-- Keep 9200 (Elasticsearch) closed externally unless required
+- Outbound from agents to hub: 185.252.234.29:3100 (Loki)
+- Open on hub (inbound): 3100/tcp, 9090/tcp, 9093/tcp, 3000/tcp
 
 ## Quick start
 
@@ -36,9 +35,8 @@ chmod +x *.sh
 ```
 
 Access:
-- Kibana: http://SERVER1:5601
-- Prometheus: http://SERVER1:9090
 - Grafana: http://SERVER1:3000 (admin/admin123)
+- Prometheus: http://SERVER1:9090
 
 ### Server 2 (agent)
 
@@ -53,13 +51,13 @@ SERVER1_IP=185.252.234.29 ./bootstrap-agent.sh
 
 - Hub (Server 1):
   - `docker-compose.hub.yml` — hub services
-  - `setup-configs.sh` — generates Prometheus, Alertmanager, Logstash, Filebeat, Falco configs
+  - `setup-configs.sh` — generates Prometheus, Alertmanager, Loki, Falco configs
   - `bootstrap-hub.sh` — runs hub configs + compose stack + status
   - `deploy-monitor.sh` — host-only: auditd, inotify, AIDE (works on all servers)
   - `check-status.sh` — health checks for hub or agent
 - Agents (Server 2-7):
-  - `docker-compose.agent.yml` — agent services (Filebeat, Node Exporter, optional Fail2Ban)
-  - `setup-agent.sh` — creates Filebeat config; reads SERVER1_IP env; tags with hostname
+  - `docker-compose.agent.yml` — agent services (Promtail, Node Exporter, optional Fail2Ban)
+  - `setup-agent.sh` — (still for host monitors); Promtail config is generated as promtail-agent.yml
   - `bootstrap-agent.sh` — generates configs, starts agent services, status
 
 ## Validation and test commands
@@ -69,7 +67,7 @@ SERVER1_IP=185.252.234.29 ./bootstrap-agent.sh
 ```bash
 docker-compose -f docker-compose.hub.yml ps
 ./check-status.sh hub
-curl -s http://localhost:9200/_cat/indices/logs-* | tail -n 5
+curl -s "http://localhost:3100/loki/api/v1/label/job/values"
 ```
 
 ### Prometheus targets
@@ -80,33 +78,24 @@ curl -s http://localhost:9200/_cat/indices/logs-* | tail -n 5
 curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {health: .health, labels: .labels}'
 ```
 
-### Kibana logs from Server 2
+### View logs from Server 2 in Grafana (Loki)
 
-- UI: Kibana → Discover → Index pattern `logs-*`
-- Filter examples (KQL):
-  - `server: "<server2-hostname>" and log_type: "audit"`
-  - `server: "<server2-hostname>" and log_type: "inotify"`
-  - `server: "<server2-hostname>" and container.name: "<container>"`
-- CLI counts:
-```bash
-# All Server 2 logs
-curl -s 'http://localhost:9200/logs-*/_search' -H 'Content-Type: application/json' -d '{"track_total_hits":true,"query":{"term":{"server.keyword":"<server2-hostname>"}},"size":0}' | jq '.hits.total'
-
-# Auditd only
-curl -s 'http://localhost:9200/logs-*/_search' -H 'Content-Type: application/json' -d '{"track_total_hits":true,"query":{"bool":{"must":[{"term":{"server.keyword":"<server2-hostname>"}},{"term":{"log_type.keyword":"audit"}}]}},"size":0}' | jq '.hits.total'
-```
+- Grafana → Explore → Data source: Loki
+- LogQL examples:
+  - `{job="varlogs", host="<server2-hostname>"}`
+  - `{job="containers", host="<server2-hostname>", container_name="<name>"}` |= `"ERROR"`
 
 ### Agent checks (Server 2)
 
 ```bash
 docker-compose -f docker-compose.agent.yml ps
 ./check-status.sh agent
-# Filebeat logs
-docker logs --tail=100 filebeat
+# Promtail logs
+docker logs --tail=100 promtail
 # Node exporter
 curl -s http://localhost:9100/metrics | head -n 5
-# Logstash connectivity test
-nc -z 185.252.234.29 5044 || bash -c 'cat < /dev/null > /dev/tcp/185.252.234.29/5044' && echo OK || echo FAIL
+# Loki connectivity test
+curl -s "http://185.252.234.29:3100/ready"
 ```
 
 ### Host monitors
@@ -141,25 +130,23 @@ docker-compose -f docker-compose.hub.yml --profile secrets up -d # Vault
 
 ### Retention and resources
 
-- Elasticsearch: keep `ilm_enabled: false`; manage with index patterns and manual cleanup or add ILM later.
-- Prometheus retention: default 30d; change via `--storage.tsdb.retention.time`.
+- Loki stores chunks on disk under `loki_data`; manage via filesystem and Grafana Explore. Prometheus retention unchanged (30d by flag).
 - Disk checks:
 ```bash
 df -h /
-curl -s http://localhost:9200/_cat/indices | wc -l
 ```
 
 ## Troubleshooting
 
-- No logs in Kibana from Server 2
+- No logs visible in Grafana Explore
   - Ensure agent stack running: `docker-compose -f docker-compose.agent.yml ps`
-  - Filebeat can reach hub: `docker logs filebeat | tail -n 50`
-  - Hub Logstash receiving: `docker logs -f logstash | head -n 50`
+  - Promtail can reach hub: `docker logs promtail | tail -n 50`
+  - Loki ready: `curl -s http://localhost:3100/ready`
   - Check auditd/inotify on Server 2: see Host monitors above
 
-- Logstash up but no indices
-  - Confirm output host in `filebeat-agent.yml` (generated by `setup-agent.sh`) points to 185.252.234.29:5044
-  - Check ES connectivity inside Logstash container: `curl -s http://elasticsearch:9200`
+- Promtail up but no streams
+  - Confirm `promtail-agent.yml` has correct `url: http://185.252.234.29:3100/loki/api/v1/push`
+  - Verify labels `job` and `host` and paths `/var/log/*` and Docker logs
 
 - High resource usage
   - Reduce Prometheus retention; stop optional profiles; shorten ES log retention; consider Loki for container/sys logs.

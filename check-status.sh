@@ -13,7 +13,7 @@ if [[ "$SERVER_TYPE" == "hub" ]]; then
     echo ""
     
     echo "[*] Service Health Checks:"
-    services=("elasticsearch:9200" "kibana:5601" "prometheus:9090" "grafana:3000")
+    services=("loki:3100" "prometheus:9090" "grafana:3000")
     
     for service in "${services[@]}"; do
         name=${service%:*}
@@ -31,8 +31,8 @@ if [[ "$SERVER_TYPE" == "hub" ]]; then
     echo "$targets_status"
     echo ""
     
-    echo "[*] Log Indices (last 3 days):"
-    curl -s http://localhost:9200/_cat/indices/logs-* | tail -3
+    echo "[*] Loki label values (job):"
+    curl -s "http://localhost:3100/loki/api/v1/label/job/values" | jq -r '.data[]' || echo "Unable to fetch Loki labels"
     echo ""
     
     echo "[*] System Resources:"
