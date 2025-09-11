@@ -6,7 +6,6 @@ services:
     image: prom/node-exporter:latest
     container_name: node-exporter
     restart: unless-stopped
-    mem_limit: 64m
     ports:
       - "9100:9100"
     command:
@@ -25,7 +24,6 @@ services:
     container_name: filebeat
     user: root
     restart: unless-stopped
-    mem_limit: 128m
     volumes:
       - ./filebeat-agent.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -41,7 +39,8 @@ services:
       - NET_ADMIN
       - NET_RAW
     volumes:
-      - ./fail2ban-agent:/etc/fail2ban
+      - ./fail2ban-agent:/data
       - /var/log:/var/log:ro
+    environment:
+      - F2B_LOG_TARGET=STDOUT
     restart: unless-stopped
-    mem_limit: 64m
