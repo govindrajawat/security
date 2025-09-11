@@ -174,7 +174,7 @@ cat > fail2ban/jail.d/custom.conf <<'EOF'
 bantime = 3600
 findtime = 600
 maxretry = 5
-backend = systemd
+backend = auto
 
 [sshd]
 enabled = true

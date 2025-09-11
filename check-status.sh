@@ -36,7 +36,7 @@ if [[ "$SERVER_TYPE" == "hub" ]]; then
     echo ""
     
     echo "[*] System Resources:"
-    echo "Memory: $(free -h | awk 'NR==2{printf "%.1fGB/%.1fGB (%.0f%%)\n", $3/1024, $2/1024, $3*100/$2}')"
+    echo "Memory: $(free -m | awk 'NR==2{printf "%dMB/%dMB (%d%%)\n", $3, $2, ($3*100)/$2}')"
     echo "Disk: $(df -h / | awk 'NR==2{printf "%s/%s (%s)\n", $3, $2, $5}')"
     echo ""
     
@@ -62,7 +62,7 @@ elif [[ "$SERVER_TYPE" == "agent" ]]; then
     echo ""
     
     echo "[*] Connectivity to Hub:"
-    if nc -z 185.252.234.29 5044 >/dev/null 2>&1; then
+    if nc -z 185.252.234.29 5044 >/dev/null 2>&1 || bash -c 'cat < /dev/null > /dev/tcp/185.252.234.29/5044' >/dev/null 2>&1; then
         echo "✓ Logstash (185.252.234.29:5044) - OK"
     else
         echo "✗ Logstash (185.252.234.29:5044) - FAILED"
