@@ -3,7 +3,12 @@
 set -e
 
 echo "[*] Creating configuration directories..."
-mkdir -p {prometheus,alertmanager,logstash/config,filebeat,fail2ban,falco}
+mkdir -p prometheus
+mkdir -p alertmanager
+mkdir -p logstash/config
+mkdir -p filebeat
+mkdir -p fail2ban/jail.d
+mkdir -p falco
 
 echo "[*] Creating Prometheus configuration..."
 cat > prometheus/prometheus.yml <<'EOF'
