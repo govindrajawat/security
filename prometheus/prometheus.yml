@@ -26,6 +26,26 @@ scrape_configs:
         - '84.46.255.10:9100'
         labels:
           instance: 'server2'
+      - targets:
+        - '84.247.189.64:9100'
+        labels:
+          instance: 'server3'
+      - targets:
+        - '3.28.50.27:9100'
+        labels:
+          instance: 'server4'
+      - targets:
+        - '5.189.153.176:9100'
+        labels:
+          instance: 'server5'
+      - targets:
+        - '207.180.229.13:9100'
+        labels:
+          instance: 'server6'
+      - targets:
+        - '89.117.48.45:9100'
+        labels:
+          instance: 'server7'
     metric_relabel_configs:
       - source_labels: [__name__]
         regex: 'go_.+|process_.+'
