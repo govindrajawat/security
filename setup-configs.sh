@@ -31,7 +31,7 @@ scrape_configs:
 
   - job_name: 'node-exporters'
     static_configs:
-      - targets:
+      - targets: 
         - '185.252.234.29:9100'
         labels:
           instance: 'server1'
@@ -85,12 +85,24 @@ route:
   group_wait: 10s
   group_interval: 10s
   repeat_interval: 1h
-  receiver: 'web.hook'
+  receiver: 'teams'
 
 receivers:
-- name: 'web.hook'
+- name: 'teams'
   webhook_configs:
-  - url: 'http://prometheus:9090/-/reload'
+  - url: 'https://xtranetbpo.webhook.office.com/webhookb2/fe520c5d-7b15-4f2f-a3ac-c1d8eb6d7d8e@ffc09875-f21d-4a06-a4aa-8fd68133c6c2/IncomingWebhook/777e941036644e73bc80742509b42024/6c34b87d-f41d-4068-ba81-b1af74798edd/V2TPzTA8LY0KKpWUFU-iJ3IgkLjaduhzmWcjF-aJ4VLu01'
+    send_resolved: true
+    title: 'Security Alert: {{ .GroupLabels.alertname }}'
+    text: |
+      **Alert:** {{ .GroupLabels.alertname }}
+      **Severity:** {{ .CommonLabels.severity }}
+      **Instance:** {{ .CommonLabels.instance }}
+      **Summary:** {{ .CommonAnnotations.summary }}
+      **Status:** {{ .Status }}
+      {{ range .Alerts }}
+      **Description:** {{ .Annotations.description }}
+      **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+      {{ end }}
 EOF
 
 echo "[*] Creating Loki configuration..."

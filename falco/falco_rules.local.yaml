@@ -1,0 +1,19 @@
+- rule: Docker Container Spawned
+  desc: A docker container was spawned
+  condition: >
+    spawned_process and container
+  output: >
+    Container started (user=%user.name command=%proc.cmdline container_id=%container.id 
+    container_name=%container.name image=%container.image.repository)
+  priority: INFO
+  tags: [container, docker]
+
+- rule: File Created in Sensitive Directory
+  desc: File created in sensitive system directory
+  condition: >
+    fd.name startswith /etc or fd.name startswith /bin or fd.name startswith /sbin
+  output: >
+    File created in sensitive dir (user=%user.name command=%proc.cmdline 
+    file=%fd.name container=%container.name)
+  priority: WARNING
+  tags: [filesystem, security]

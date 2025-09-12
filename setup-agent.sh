@@ -91,7 +91,7 @@ scrape_configs:
       - targets: [localhost]
         labels:
           job: varlogs
-          host: $(hostname -f)
+          host: $(hostname)
           __path__: /var/log/{auth.log,syslog}
 
   - job_name: docker-containers
@@ -99,7 +99,7 @@ scrape_configs:
       - targets: [localhost]
         labels:
           job: containers
-          host: $(hostname -f)
+          host: $(hostname)
           __path__: /var/lib/docker/containers/*/*.log
     pipeline_stages:
       - docker: {}
@@ -109,7 +109,7 @@ scrape_configs:
       - targets: [localhost]
         labels:
           job: security
-          host: $(hostname -f)
+          host: $(hostname)
           __path__: /var/lib/inotify/changes.log
     pipeline_stages:
       - match:
