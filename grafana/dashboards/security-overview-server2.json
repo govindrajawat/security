@@ -27,7 +27,7 @@
     ]
   },
   "panels": [
-      {"id":1,"title":"System Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"varlogs\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":12,"x":0,"y":0}},
+      {"id":1,"title":"System Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"varlogs\\\", host=~\\\"$host\\\"}","refId":"A","datasource":{"type":"loki","uid":"Loki"}}],"gridPos":{"h":8,"w":12,"x":0,"y":0}},
       {"id":2,"title":"Container Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"containers\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":12,"x":12,"y":0}},
       {"id":3,"title":"Security Events (inotify)","type":"logs","targets":[{"expr":"{job=\\\"security\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":24,"x":0,"y":8}},
       {"id":4,"title":"SSH Failed Logins by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"Failed password\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":0,"y":16}},
