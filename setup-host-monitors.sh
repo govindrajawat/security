@@ -19,11 +19,10 @@ cat <<'EOF' | sudo tee /etc/audit/rules.d/hardening.rules
 -w /var/log/kern.log -p wa -k kernlogs
 -w /var/log/faillog  -p wa -k faillogs
 -w /var/log/lastlog  -p wa -k lastlogs
-## Reduce noise: ignore frequent netfilter and docker iptables chatter
+## Reduce noise: ignore frequent netfilter and socket spam (allowed fields only)
 -a always,exclude -F msgtype=NETFILTER_CFG
 -a always,exclude -F msgtype=SOCKADDR
--a always,exclude -F exe=/usr/sbin/xtables-legacy-multi
--a always,exclude -F exe=/usr/bin/dockerd
+-a always,exclude -F msgtype=ANOM_PROMISCUOUS
 EOF
 
 sudo augenrules --load
