@@ -1,7 +1,7 @@
 {
   "id": null,
-  "uid": "securit-server2-84.46.255.10",
-  "title": "securit-server2-84.46.255.10",
+  "uid": "security-server2-84-46-255-10",
+  "title": "security-server2-84.46.255.10",
   "tags": ["security", "monitoring"],
   "style": "dark",
   "timezone": "browser",
