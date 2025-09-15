@@ -15,7 +15,7 @@ scrape_configs:
         labels:
           job: varlogs
           host: ${HOSTNAME}
-          __path__: /var/log/{auth.log,syslog}
+          __path__: /var/log/auth.log
 
   - job_name: docker-containers
     static_configs:
@@ -56,4 +56,16 @@ scrape_configs:
           job: auditd
           host: ${HOSTNAME}
           __path__: /var/log/audit/audit.log
+    pipeline_stages:
+      - match:
+          selector: '{job="auditd"}'
+          stages:
+            - drop:
+                expression: 'type=(PROCTITLE|SOCKADDR|NETFILTER_CFG)'
+            - drop:
+                expression: ' comm="(iptables|dockerd)"'
+            - drop:
+                expression: 'type=ANOM_PROMISCUOUS'
+            - drop:
+                expression: 'type=SYSCALL'
 
