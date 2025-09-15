@@ -1,9 +1,14 @@
 {
   "id": null,
+  "uid": "security-overview",
   "title": "Security Stack Overview",
   "tags": ["security", "monitoring"],
   "style": "dark",
   "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "editable": true,
+  "annotations": { "list": [] },
   "templating": {
     "list": [
       {

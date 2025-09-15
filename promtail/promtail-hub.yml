@@ -15,7 +15,7 @@ scrape_configs:
         labels:
           job: varlogs
           host: ${HOSTNAME}
-          __path__: /var/log/auth.log
+          __path__: /var/log/{auth.log,secure}
 
   - job_name: docker-containers
     static_configs:
