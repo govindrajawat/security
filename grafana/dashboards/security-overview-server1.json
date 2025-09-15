@@ -1,7 +1,7 @@
 {
   "id": null,
-  "uid": "security-overview-server1",
-  "title": "Security Stack - server1",
+  "uid": "security-server1-185.252.234.29",
+  "title": "security-server1-185.252.234.29",
   "tags": ["security", "monitoring"],
   "style": "dark",
   "timezone": "browser",
