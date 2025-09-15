@@ -23,11 +23,14 @@ services:
     image: grafana/promtail:2.9.0
     container_name: promtail
     command: ["-config.file=/etc/promtail/config.yml"]
+    hostname: ${PROMTAIL_HOST}
     volumes:
       - ./promtail/promtail-agent.yml:/etc/promtail/config.yml:ro
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - HOSTNAME=${PROMTAIL_HOST}
     restart: unless-stopped
 
   # Lightweight Fail2Ban (optional, can run on Server 1 only)
@@ -40,7 +43,7 @@ services:
       - NET_RAW
     volumes:
       - ./fail2ban-agent:/data
-      - /var/log:/var/log:ro
+      - /var/log:/var/log
     environment:
-      - F2B_LOG_TARGET=STDOUT
+      - F2B_LOG_TARGET=FILE
     restart: unless-stopped
