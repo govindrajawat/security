@@ -41,6 +41,78 @@
           }
         ],
         "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "SSH Failed Logins by Host",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"Failed password\" [5m]))",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "SSH Successful Logins by Host",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"Accepted password\" [5m]))",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Fail2Ban Bans (last 1h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"fail2ban\"} |= \"Ban\" [1h]))",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 16}
+      },
+      {
+        "id": 7,
+        "title": "Sudo Usage by Host",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"sudo:\" [5m]))",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 22}
+      },
+      {
+        "id": 8,
+        "title": "Root Shell Sessions",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"session opened for user root\" [1h]))",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 22}
+      },
+      {
+        "id": 9,
+        "title": "Auditd: Command Executions (execve)",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"auditd\"} |= \"type=EXECVE\" |~ \"exe=\\\".*\\\"\"",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28}
       }
     ],
     "time": {
