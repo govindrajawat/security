@@ -5,6 +5,21 @@
     "tags": ["security", "monitoring"],
     "style": "dark",
     "timezone": "browser",
+    "templating": {
+      "list": [
+        {
+          "name": "host",
+          "type": "query",
+          "datasource": "Loki",
+          "refresh": 1,
+          "query": "label_values({job=~\"varlogs|fail2ban|auditd|containers|security\"}, \"host\")",
+          "includeAll": true,
+          "allValue": ".*",
+          "multi": false,
+          "label": "Host"
+        }
+      ]
+    },
     "panels": [
       {
         "id": 1,
@@ -12,7 +27,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"varlogs\"}",
+            "expr": "{job=\"varlogs\", host=~\"$host\"}",
             "refId": "A"
           }
         ],
@@ -24,7 +39,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"containers\"}",
+            "expr": "{job=\"containers\", host=~\"$host\"}",
             "refId": "A"
           }
         ],
@@ -36,7 +51,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"security\"}",
+            "expr": "{job=\"security\", host=~\"$host\"}",
             "refId": "A"
           }
         ],
@@ -48,7 +63,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"Failed password\" [5m]))",
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\", filename=~\"/var/log/auth.log\"} |= \"Failed password\" [5m]))",
             "refId": "A"
           }
         ],
@@ -60,7 +75,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"Accepted password\" [5m]))",
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\", filename=~\"/var/log/auth.log\"} |= \"Accepted password\" [5m]))",
             "refId": "A"
           }
         ],
@@ -72,7 +87,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "sum by (host) (count_over_time({job=\"fail2ban\"} |= \"Ban\" [1h]))",
+            "expr": "sum by (host) (count_over_time({job=\"fail2ban\", host=~\"$host\"} |= \"Ban\" [1h]))",
             "refId": "A"
           }
         ],
@@ -84,7 +99,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"sudo:\" [5m]))",
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\", filename=~\"/var/log/auth.log\"} |= \"sudo:\" [5m]))",
             "refId": "A"
           }
         ],
@@ -96,7 +111,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "sum by (host) (count_over_time({job=\"varlogs\", filename=~\"/var/log/auth.log\"} |= \"session opened for user root\" [1h]))",
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\", filename=~\"/var/log/auth.log\"} |= \"session opened for user root\" [1h]))",
             "refId": "A"
           }
         ],
@@ -108,7 +123,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"auditd\"} |= \"type=EXECVE\" |~ \"exe=\\\".*\\\"\"",
+            "expr": "{job=\"auditd\", host=~\"$host\"} |= \"type=EXECVE\" |~ \"exe=\\\".*\\\"\"",
             "refId": "A"
           }
         ],
