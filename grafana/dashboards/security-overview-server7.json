@@ -1,0 +1,28 @@
+{
+  "id": null,
+  "uid": "security-overview-server7",
+  "title": "Security Stack - server7",
+  "tags": ["security", "monitoring"],
+  "style": "dark",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "editable": true,
+  "annotations": { "list": [] },
+  "templating": {"list": [{"name":"host","type":"query","datasource":"Loki","refresh":1,"query":"label_values({job=~\\\"varlogs|fail2ban|auditd|containers|security\\\"}, \\\"host\\\")","includeAll":true,"allValue":".*","multi":false,"label":"Host","current":{"text":"server7","value":"server7","selected":true},"hide":2}]},
+  "panels": [
+    {"id":1,"title":"System Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"varlogs\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":12,"x":0,"y":0}},
+    {"id":2,"title":"Container Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"containers\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":12,"x":12,"y":0}},
+    {"id":3,"title":"Security Events (inotify)","type":"logs","targets":[{"expr":"{job=\\\"security\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":24,"x":0,"y":8}},
+    {"id":4,"title":"SSH Failed Logins by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"Failed password\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":0,"y":16}},
+    {"id":5,"title":"SSH Successful Logins by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"Accepted password\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":8,"y":16}},
+    {"id":6,"title":"Fail2Ban Bans (last 1h)","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"fail2ban\\\", host=~\\\"$host\\\"} |= \\\"Ban\\\" [1h]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":16,"y":16}},
+    {"id":7,"title":"Sudo Usage by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"sudo:\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":0,"y":22}},
+    {"id":8,"title":"Root Shell Sessions","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"session opened for user root\\\" [1h]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":8,"y":22}},
+    {"id":9,"title":"Auditd: Command Executions (execve)","type":"logs","targets":[{"expr":"{job=\\\"auditd\\\", host=~\\\"$host\\\"} |= \\\"type=EXECVE\\\" |~ \\\"exe=\\\\\\\".*\\\\\\\"\\\"","refId":"A"}],"gridPos":{"h":8,"w":24,"x":0,"y":28}}
+  ],
+  "time": {"from":"now-1h","to":"now"},
+  "refresh": "30s"
+}
+
+

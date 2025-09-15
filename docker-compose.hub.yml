@@ -85,9 +85,9 @@ services:
       - NET_RAW
     volumes:
       - ./fail2ban:/data
-      - /var/log:/var/log:ro
+      - /var/log:/var/log
     environment:
-      - F2B_LOG_TARGET=STDOUT
+      - F2B_LOG_TARGET=FILE
       - TZ=UTC
     restart: unless-stopped
 
@@ -137,11 +137,14 @@ services:
     image: grafana/promtail:2.9.0
     container_name: promtail
     command: ["-config.file=/etc/promtail/config.yml"]
+    hostname: ${PROMTAIL_HOST}
     volumes:
       - ./promtail/promtail-hub.yml:/etc/promtail/config.yml:ro
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - HOSTNAME=${PROMTAIL_HOST}
     restart: unless-stopped
 
 volumes:
