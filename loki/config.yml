@@ -30,3 +30,6 @@ ruler:
     type: local
     local:
       directory: /loki/rules
+limits_config:
+  reject_old_samples: true
+  reject_old_samples_max_age: 336h
