@@ -137,7 +137,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"auditd\", host=~\"$host\"} |= \"type=EXECVE\" |~ \"exe=\\\".*\\\"\"",
+            "expr": "{job=\"auditd\", host=~\"$host\"} |~ \"type=EXECVE|key=exec_log\"",
             "refId": "A",
             "datasource": {"type": "loki", "uid": "loki"}
           }
@@ -201,7 +201,7 @@
             "datasource": {"type": "loki", "uid": "loki"}
           },
           {
-            "expr": "sum by (host) (rate({job=\"auditd\", host=~\"$host\"} |= \"type=EXECVE\" [1m]))",
+            "expr": "sum by (host) (rate({job=\"auditd\", host=~\"$host\"} |~ \"type=EXECVE|key=exec_log\" [1m]))",
             "refId": "C",
             "legendFormat": "Command Executions - {{host}}",
             "datasource": {"type": "loki", "uid": "loki"}
