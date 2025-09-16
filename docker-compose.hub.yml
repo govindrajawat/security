@@ -89,6 +89,7 @@ services:
       - /var/log/fail2ban.log:/data/fail2ban.log
     environment:
       - F2B_LOG_TARGET=FILE
+      - F2B_LOG_FILE=/data/fail2ban.log
       - TZ=UTC
     restart: unless-stopped
 

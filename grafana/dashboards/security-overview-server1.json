@@ -163,7 +163,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"varlogs\", host=~\"$host\"} |= \"sudo:\" |~ \"COMMAND=\\\".*\\\"\"",
+            "expr": "{job=\"varlogs\", host=~\"$host\"} |= \"sudo:\" |~ \"COMMAND=.*\"",
             "refId": "A",
             "datasource": {"type": "loki", "uid": "loki"}
           }
@@ -176,7 +176,7 @@
         "type": "logs",
         "targets": [
           {
-            "expr": "{job=\"varlogs\", host=~\"$host\"} |= \"session opened for user root\" or |= \"Accepted publickey for root\" or |= \"Accepted password for root\"",
+            "expr": "{job=\"varlogs\", host=~\"$host\"} |~ \"session opened for user root|Accepted (publickey|password) for root\"",
             "refId": "A",
             "datasource": {"type": "loki", "uid": "loki"}
           }
