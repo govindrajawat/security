@@ -45,6 +45,9 @@ services:
     volumes:
       - ./fail2ban-agent:/data
       - /var/log:/var/log
+      - type: bind
+        source: /var/log/fail2ban.log
+        target: /var/log/fail2ban.log
     environment:
       - F2B_LOG_TARGET=FILE
       - F2B_LOG_FILE=/var/log/fail2ban.log
