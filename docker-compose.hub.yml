@@ -86,6 +86,7 @@ services:
     volumes:
       - ./fail2ban:/data
       - /var/log:/var/log
+      - /var/log/fail2ban.log:/data/fail2ban.log
     environment:
       - F2B_LOG_TARGET=FILE
       - TZ=UTC
@@ -175,6 +176,7 @@ services:
     volumes:
       - ./promtail/promtail-hub.yml:/etc/promtail/config.yml:ro
       - /var/log:/var/log:ro
+      - /var/lib/inotify:/var/lib/inotify:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:

@@ -66,5 +66,3 @@ scrape_configs:
                 expression: ' comm="(iptables|dockerd)"'
             - drop:
                 expression: 'type=ANOM_PROMISCUOUS'
-            - drop:
-                expression: 'type=SYSCALL'

@@ -23,6 +23,10 @@ cat <<'EOF' | sudo tee /etc/audit/rules.d/hardening.rules
 -a always,exclude -F msgtype=NETFILTER_CFG
 -a always,exclude -F msgtype=SOCKADDR
 -a always,exclude -F msgtype=ANOM_PROMISCUOUS
+
+## Track process executions (execve/execveat) for visibility into commands
+-a always,exit -F arch=b64 -S execve,execveat -k exec_log
+-a always,exit -F arch=b32 -S execve,execveat -k exec_log
 EOF
 
 sudo augenrules --load
