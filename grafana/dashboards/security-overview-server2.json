@@ -14,9 +14,9 @@
       {
         "name": "host",
         "type": "query",
-        "datasource": "Loki",
+        "datasource": {"type": "loki", "uid": "loki"},
         "refresh": 1,
-        "query": "label_values({job=~\"varlogs|fail2ban|auditd|containers|security\"}, \"host\")",
+        "query": "label_values({job=~\"varlogs|fail2ban|auditd|containers|security\"}, host)",
         "includeAll": true,
         "allValue": ".*",
         "multi": false,
@@ -27,17 +27,193 @@
     ]
   },
   "panels": [
-      {"id":1,"title":"System Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"varlogs\\\", host=~\\\"$host\\\"}","refId":"A","datasource":{"type":"loki","uid":"Loki"}}],"gridPos":{"h":8,"w":12,"x":0,"y":0}},
-      {"id":2,"title":"Container Logs by Host","type":"logs","targets":[{"expr":"{job=\\\"containers\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":12,"x":12,"y":0}},
-      {"id":3,"title":"Security Events (inotify)","type":"logs","targets":[{"expr":"{job=\\\"security\\\", host=~\\\"$host\\\"}","refId":"A"}],"gridPos":{"h":8,"w":24,"x":0,"y":8}},
-      {"id":4,"title":"SSH Failed Logins by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"Failed password\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":0,"y":16}},
-      {"id":5,"title":"SSH Successful Logins by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"Accepted password\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":8,"y":16}},
-      {"id":6,"title":"Fail2Ban Bans (last 1h)","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"fail2ban\\\", host=~\\\"$host\\\"} |= \\\"Ban\\\" [1h]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":16,"y":16}},
-      {"id":7,"title":"Sudo Usage by Host","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"sudo:\\\" [5m]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":0,"y":22}},
-      {"id":8,"title":"Root Shell Sessions","type":"stat","targets":[{"expr":"sum by (host) (count_over_time({job=\\\"varlogs\\\", host=~\\\"$host\\\", filename=~\\\"/var/log/(auth.log|secure)\\\"} |= \\\"session opened for user root\\\" [1h]))","refId":"A"}],"gridPos":{"h":6,"w":8,"x":8,"y":22}},
-      {"id":9,"title":"Auditd: Command Executions (execve)","type":"logs","targets":[{"expr":"{job=\\\"auditd\\\", host=~\\\"$host\\\"} |= \\\"type=EXECVE\\\" |~ \\\"exe=\\\\\\\".*\\\\\\\"\\\"","refId":"A"}],"gridPos":{"h":8,"w":24,"x":0,"y":28}}
+      {
+        "id": 101,
+        "title": "System Logs by Host",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"varlogs\", host=~\"$host\"}",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 102,
+        "title": "Container Logs by Host", 
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"containers\", host=~\"$host\"}",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 103,
+        "title": "Security Events (inotify)",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"security\", host=~\"$host\"}",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 104,
+        "title": "SSH Failed Logins by Host",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\"} |= \"Failed password\" [5m]))",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 16}
+      },
+      {
+        "id": 105,
+        "title": "SSH Successful Logins by Host",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\"} |= \"Accepted password\" [5m]))",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 16}
+      },
+      {
+        "id": 106,
+        "title": "Fail2Ban Bans (last 1h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"fail2ban\", host=~\"$host\"} |= \"Ban\" [1h]))",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 16}
+      },
+      {
+        "id": 107,
+        "title": "Sudo Usage by Host",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\"} |= \"sudo:\" [5m]))",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 22}
+      },
+      {
+        "id": 108,
+        "title": "Root Shell Sessions",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (host) (count_over_time({job=\"varlogs\", host=~\"$host\"} |= \"session opened for user root\" [1h]))",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 22}
+      },
+      {
+        "id": 109,
+        "title": "Auditd: Command Executions (execve)",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"auditd\", host=~\"$host\"} |= \"type=EXECVE\" |~ \"exe=\\\".*\\\"\"",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28}
+      },
+      {
+        "id": 110,
+        "title": "Failed Login Attempts (Last 24h)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (host) (rate({job=\"varlogs\", host=~\"$host\"} |= \"Failed password\" [5m]))",
+            "refId": "A",
+            "legendFormat": "{{host}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28}
+      },
+      {
+        "id": 111,
+        "title": "Sudo Commands Executed",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"varlogs\", host=~\"$host\"} |= \"sudo:\" |~ \"COMMAND=\\\".*\\\"\"",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 36}
+      },
+      {
+        "id": 112,
+        "title": "Root Access Events",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"varlogs\", host=~\"$host\"} |= \"session opened for user root\" or |= \"Accepted publickey for root\" or |= \"Accepted password for root\"",
+            "refId": "A",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36}
+      },
+      {
+        "id": 113,
+        "title": "Security Events Timeline",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (host) (rate({job=\"varlogs\", host=~\"$host\"} |= \"Failed password\" [1m]))",
+            "refId": "A",
+            "legendFormat": "Failed Logins - {{host}}",
+            "datasource": {"type": "loki", "uid": "loki"}
+          },
+          {
+            "expr": "sum by (host) (rate({job=\"fail2ban\", host=~\"$host\"} |= \"Ban\" [1m]))",
+            "refId": "B",
+            "legendFormat": "Fail2Ban Bans - {{host}}",
+            "datasource": {"type": "loki", "uid": "loki"}
+          },
+          {
+            "expr": "sum by (host) (rate({job=\"auditd\", host=~\"$host\"} |= \"type=EXECVE\" [1m]))",
+            "refId": "C",
+            "legendFormat": "Command Executions - {{host}}",
+            "datasource": {"type": "loki", "uid": "loki"}
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 44}
+      }
   ],
-  "time": {"from":"now-1h","to":"now"},
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "refresh": "30s"
 }
 

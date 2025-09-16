@@ -15,7 +15,7 @@ scrape_configs:
         labels:
           job: varlogs
           host: ${HOSTNAME}
-          __path__: /var/log/{auth.log,secure}
+          __path__: /var/log/{auth.log,secure,syslog,kern.log}
 
   - job_name: docker-containers
     static_configs:
@@ -39,7 +39,7 @@ scrape_configs:
           selector: '{job="security"}'
           stages:
             - drop:
-                expression: ' /var/log/ MODIFY inotify-changes.log'
+                expression: '/var/log/ MODIFY inotify-changes.log'
 
   - job_name: fail2ban
     static_configs:

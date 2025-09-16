@@ -17,3 +17,91 @@
     file=%fd.name container=%container.name)
   priority: WARNING
   tags: [filesystem, security]
+
+- rule: Privilege Escalation via sudo
+  desc: Detect privilege escalation via sudo
+  condition: >
+    spawned_process and proc.name=sudo and proc.args contains "-E"
+  output: >
+    Privilege escalation via sudo (user=%user.name command=%proc.cmdline 
+    container=%container.name)
+  priority: WARNING
+  tags: [privilege_escalation, sudo]
+
+- rule: Suspicious Network Activity
+  desc: Detect suspicious network connections
+  condition: >
+    (inbound_outbound) and fd.sockfamily=ip and 
+    (fd.net != "127.0.0.0/8" and fd.net != "10.0.0.0/8" and 
+     fd.net != "172.16.0.0/12" and fd.net != "192.168.0.0/16")
+  output: >
+    Suspicious network connection (user=%user.name command=%proc.cmdline 
+    connection=%fd.name container=%container.name)
+  priority: WARNING
+  tags: [network, suspicious]
+
+- rule: Container with Privileged Mode
+  desc: Container running in privileged mode
+  condition: >
+    container and container.privileged=true
+  output: >
+    Privileged container detected (user=%user.name container_id=%container.id 
+    container_name=%container.name image=%container.image.repository)
+  priority: CRITICAL
+  tags: [container, privileged, security]
+
+- rule: Shell Spawned in Container
+  desc: Shell spawned in container
+  condition: >
+    spawned_process and container and 
+    (proc.name in (bash, sh, zsh, fish, csh, tcsh))
+  output: >
+    Shell spawned in container (user=%user.name command=%proc.cmdline 
+    container=%container.name)
+  priority: WARNING
+  tags: [container, shell, security]
+
+- rule: File System Mount in Container
+  desc: File system mount in container
+  condition: >
+    container and evt.type=mount
+  output: >
+    File system mount in container (user=%user.name command=%proc.cmdline 
+    container=%container.name mount=%evt.arg.mountpoint)
+  priority: WARNING
+  tags: [container, mount, security]
+
+- rule: Suspicious Binary Execution
+  desc: Execution of suspicious binaries
+  condition: >
+    spawned_process and 
+    (proc.name in (nc, netcat, wget, curl, python, perl, ruby, php) and 
+     proc.args contains "http" or proc.args contains "ftp")
+  output: >
+    Suspicious binary execution (user=%user.name command=%proc.cmdline 
+    container=%container.name)
+  priority: WARNING
+  tags: [suspicious, binary, network]
+
+- rule: Database Access Attempt
+  desc: Database access attempt
+  condition: >
+    spawned_process and 
+    (proc.name in (mysql, psql, mongo, redis-cli, sqlite3))
+  output: >
+    Database access attempt (user=%user.name command=%proc.cmdline 
+    container=%container.name)
+  priority: INFO
+  tags: [database, access]
+
+- rule: Crypto Mining Activity
+  desc: Potential crypto mining activity
+  condition: >
+    spawned_process and 
+    (proc.name in (minerd, cpuminer, xmrig, ccminer) or 
+     proc.args contains "mining" or proc.args contains "pool")
+  output: >
+    Potential crypto mining activity (user=%user.name command=%proc.cmdline 
+    container=%container.name)
+  priority: CRITICAL
+  tags: [crypto, mining, security]

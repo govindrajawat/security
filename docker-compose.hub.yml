@@ -106,8 +106,15 @@ services:
       - /etc:/host/etc:ro
       - ./falco:/etc/falco
     restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      - FALCO_GRPC_ENABLED=true
+      - FALCO_GRPC_BIND_ADDRESS=0.0.0.0:5060
+      - FALCO_GRPC_THREADINESS=8
+      - FALCO_JSON_OUTPUT=true
+      - FALCO_LOG_LEVEL=info
 
-  # Trivy for vulnerability scanning
+  # Trivy for vulnerability scanning (scheduled)
   trivy:
     profiles: ["runtime"]
     image: aquasec/trivy:latest
@@ -115,7 +122,34 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - trivy_cache:/root/.cache
+      - ./trivy-reports:/reports
     restart: "no"
+    mem_limit: 512m
+    command: >
+      sh -c "
+        echo 'Starting Trivy vulnerability scan...' &&
+        trivy image --format json --output /reports/trivy-report-$(date +%Y%m%d-%H%M%S).json --severity HIGH,CRITICAL $(docker images --format '{{.Repository}}:{{.Tag}}' | head -10) &&
+        echo 'Trivy scan completed. Reports saved to /reports/'
+      "
+
+  # Trivy Webhook for continuous scanning
+  trivy-webhook:
+    profiles: ["runtime"]
+    image: aquasec/trivy:latest
+    container_name: trivy-webhook
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - trivy_cache:/root/.cache
+    restart: unless-stopped
+    mem_limit: 128m
+    command: >
+      sh -c "
+        while true; do
+          echo 'Running scheduled Trivy scan...' &&
+          trivy image --format json --output /tmp/trivy-latest.json --severity HIGH,CRITICAL $(docker images --format '{{.Repository}}:{{.Tag}}' | head -5) &&
+          sleep 3600
+        done
+      "
 
   # Vault for secrets management
   vault:

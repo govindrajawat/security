@@ -24,3 +24,37 @@ groups:
       severity: critical
     annotations:
       summary: "Low disk space on {{ $labels.instance }}"
+
+  - alert: ServiceDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service {{ $labels.job }} is down on {{ $labels.instance }}"
+
+- name: security
+  rules:
+  - alert: HighFailedSSHAttempts
+    expr: increase(ssh_failed_attempts_total[5m]) > 10
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High SSH failed attempts on {{ $labels.instance }}"
+
+  - alert: SuspiciousFileChanges
+    expr: increase(file_changes_total[10m]) > 50
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Suspicious file changes detected on {{ $labels.instance }}"
+
+  - alert: ContainerAnomaly
+    expr: increase(container_anomalies_total[5m]) > 5
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Container security anomaly on {{ $labels.instance }}"
